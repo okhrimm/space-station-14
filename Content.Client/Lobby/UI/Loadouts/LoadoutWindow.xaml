@@ -1,10 +1,12 @@
 <controls:FancyWindow xmlns="https://spacestation14.io"
          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
          xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+         xmlns:preview="clr-namespace:Content.Client.Lobby.UI.ProfileEditorControls"
          xmlns:graphics="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
-         SetSize="800 800"
-         MinSize="800 128">
+         SetSize="1450 650"
+         MinSize="1200 500">
     <BoxContainer Orientation="Vertical" VerticalExpand="True">
+        <!-- Редактирование имени роли -->
         <BoxContainer Name="RoleNameBox" Orientation="Vertical" Margin="10">
             <Label Name="LoadoutNameLabel"/>
             <PanelContainer HorizontalExpand="True" SetHeight="24">
@@ -14,9 +16,81 @@
                 <LineEdit Name="RoleNameEdit" VerticalExpand="True" HorizontalExpand="True"/>
             </PanelContainer>
         </BoxContainer>
-        <VerticalTabContainer Name="LoadoutGroupsContainer"
-                              VerticalExpand="True"
-                              HorizontalExpand="True">
-        </VerticalTabContainer>
+
+        <!-- Основной контент: персонаж + правая панель -->
+        <BoxContainer Orientation="Horizontal"
+                      SeparationOverride="12"
+                      Margin="12 12 12 12"
+                      VerticalExpand="True">
+
+            <PanelContainer MinSize="280 420" VerticalExpand="True">
+                <PanelContainer.PanelOverride>
+                    <graphics:StyleBoxFlat BackgroundColor="#1B1B1E" />
+                </PanelContainer.PanelOverride>
+                <ScrollContainer Name="RolesScroll" VerticalExpand="True" HorizontalExpand="True" Margin="6">
+                    <BoxContainer Name="RolesList"
+                                  Orientation="Vertical"
+                                  HorizontalExpand="True" />
+                </ScrollContainer>
+            </PanelContainer>
+
+            <!-- Центр: спрайт персонажа -->
+            <PanelContainer SetSize="650 540" MinSize="650 540">
+                <PanelContainer.PanelOverride>
+                    <graphics:StyleBoxFlat BackgroundColor="#1B1B1E" />
+                </PanelContainer.PanelOverride>
+                <BoxContainer Name="SlotLayoutRoot"
+                              Orientation="Vertical"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              SeparationOverride="8">
+                    <BoxContainer Orientation="Horizontal" HorizontalAlignment="Center" SeparationOverride="8">
+                        <Control Name="GlassesSlot" MinSize="84 84" />
+                        <Control Name="HeadSlot" MinSize="84 84" />
+                        <Control Name="MaskSlot" MinSize="84 84" />
+                        <Control Name="EarsSlot" MinSize="84 84" />
+                    </BoxContainer>
+                    <BoxContainer Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" SeparationOverride="14">
+                        <BoxContainer Orientation="Vertical" VerticalAlignment="Center" SeparationOverride="8">
+                            <Control Name="OuterClothingSlot" MinSize="84 84" />
+                            <Control Name="JumpsuitSlot" MinSize="84 84" />
+                            <Control Name="CapeSlot" MinSize="84 84" />
+                            <Control Name="BeltSlot" MinSize="84 84" />
+                        </BoxContainer>
+                        <BoxContainer Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" MinSize="190 270">
+                            <Control>
+                                <preview:ProfilePreviewSpriteView Name="CharacterPreview"
+                                                                  Scale="7.5 7.5"
+                                                                  HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"/>
+                            </Control>
+                            <BoxContainer Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 8 0 0">
+                                <Button Name="CharacterRotateLeft" Text="◀" StyleClasses="OpenRight" MinSize="40 32" />
+                                <Button Name="CharacterRotateRight" Text="▶" StyleClasses="OpenLeft" MinSize="40 32" Margin="8 0 0 0" />
+                            </BoxContainer>
+                        </BoxContainer>
+                        <BoxContainer Orientation="Vertical" VerticalAlignment="Center" SeparationOverride="8">
+                            <Control Name="NeckSlot" MinSize="84 84" />
+                            <Control Name="GlovesSlot" MinSize="84 84" />
+                            <Control Name="ShoesSlot" MinSize="84 84" />
+                            <Control Name="BackpackSlot" MinSize="84 84" />
+                        </BoxContainer>
+                    </BoxContainer>
+                    <BoxContainer Orientation="Horizontal" HorizontalAlignment="Center" SeparationOverride="8">
+                        <Control Name="BackSlot" MinSize="84 84" />
+                        <Control Name="PdaSlot" MinSize="84 84" />
+                        <Control Name="TrinketsSlot" MinSize="84 84" />
+                    </BoxContainer>
+                </BoxContainer>
+            </PanelContainer>
+
+            <!-- Правая часть: выбор типа снаряжения и сам список снаряжения -->
+            <VerticalTabContainer Name="LoadoutGroupsContainer"
+                                  MinSize="300 400"
+                                  VerticalExpand="True"
+                                  HorizontalExpand="True" />
+
+        </BoxContainer>
+
     </BoxContainer>
 </controls:FancyWindow>

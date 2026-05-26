@@ -48,7 +48,13 @@ public sealed partial class HumanoidProfileEditor
         _loadoutWindow?.Dispose();
     }
 
-    private void OpenLoadout(JobPrototype? jobProto, RoleLoadout roleLoadout, RoleLoadoutPrototype roleLoadoutProto)
+    private void OpenLoadout(
+        JobPrototype? jobProto,
+        RoleLoadout roleLoadout,
+        RoleLoadoutPrototype roleLoadoutProto,
+        Vector2? windowPosition = null,
+        Vector2? windowSize = null,
+        LoadoutWindowState? windowState = null)
     {
         _loadoutWindow?.Dispose();
         _loadoutWindow = null;
@@ -60,14 +66,20 @@ public sealed partial class HumanoidProfileEditor
         JobOverride = jobProto;
         var session = _playerManager.LocalSession;
 
-        _loadoutWindow = new LoadoutWindow(Profile, roleLoadout, roleLoadoutProto, _playerManager.LocalSession, collection)
+        _loadoutWindow = new LoadoutWindow(Profile, roleLoadout, roleLoadoutProto, jobProto, _playerManager.LocalSession, collection, windowState)
         {
             Title = Loc.GetString("loadout-window-title-loadout", ("job", $"{jobProto?.LocalizedName}")),
         };
 
+        if (windowSize != null)
+            _loadoutWindow.SetSize = windowSize.Value;
+
         // Refresh the buttons etc.
         _loadoutWindow.RefreshLoadouts(roleLoadout, session, collection);
-        _loadoutWindow.OpenCenteredLeft();
+        if (windowPosition != null)
+            _loadoutWindow.Open(windowPosition.Value);
+        else
+            _loadoutWindow.OpenCenteredLeft();
 
         _loadoutWindow.OnNameChanged += name =>
         {
@@ -81,6 +93,10 @@ public sealed partial class HumanoidProfileEditor
             roleLoadout.AddLoadout(loadoutGroup, loadoutProto, _prototypeManager);
             _loadoutWindow.RefreshLoadouts(roleLoadout, session, collection);
             Profile = Profile?.WithLoadout(roleLoadout);
+            if (Profile != null)
+            {
+                _loadoutWindow.SetProfile(Profile);
+            }
             ReloadPreview();
         };
 
@@ -89,7 +105,23 @@ public sealed partial class HumanoidProfileEditor
             roleLoadout.RemoveLoadout(loadoutGroup, loadoutProto, _prototypeManager);
             _loadoutWindow.RefreshLoadouts(roleLoadout, session, collection);
             Profile = Profile?.WithLoadout(roleLoadout);
+            if (Profile != null)
+            {
+                _loadoutWindow.SetProfile(Profile);
+            }
             ReloadPreview();
+        };
+
+        _loadoutWindow.OnRoleSelected += (selectedJob, selectedLoadoutProto) =>
+        {
+            var position = _loadoutWindow.Position;
+            var size = GetLoadoutWindowSize(_loadoutWindow);
+            var state = _loadoutWindow.GetState();
+            var selectedLoadout = GetRoleLoadoutForEditor(selectedJob, selectedLoadoutProto);
+            if (selectedLoadout == null)
+                return;
+
+            OpenLoadout(selectedJob, selectedLoadout, selectedLoadoutProto, position, size, state);
         };
 
         JobOverride = jobProto;
@@ -105,6 +137,29 @@ public sealed partial class HumanoidProfileEditor
             return;
 
         UpdateJobPriorities();
+    }
+
+    private static Vector2 GetLoadoutWindowSize(LoadoutWindow window)
+    {
+        return new Vector2(
+            float.IsNaN(window.SetSize.X) ? window.Size.X : window.SetSize.X,
+            float.IsNaN(window.SetSize.Y) ? window.Size.Y : window.SetSize.Y);
+    }
+
+    private RoleLoadout? GetRoleLoadoutForEditor(JobPrototype job, RoleLoadoutPrototype roleLoadoutProto)
+    {
+        if (Profile == null)
+            return null;
+
+        Profile.Loadouts.TryGetValue(LoadoutSystem.GetJobPrototype(job.ID), out var loadout);
+        loadout = loadout?.Clone();
+
+        if (loadout != null)
+            return loadout;
+
+        loadout = new RoleLoadout(roleLoadoutProto.ID);
+        loadout.SetDefault(Profile, _playerManager.LocalSession, _prototypeManager);
+        return loadout;
     }
 
     /// <summary>
@@ -268,17 +323,9 @@ public sealed partial class HumanoidProfileEditor
                 {
                     loadoutWindowBtn.OnPressed += args =>
                     {
-                        RoleLoadout? loadout = null;
-
-                        // Clone so we don't modify the underlying loadout.
-                        Profile?.Loadouts.TryGetValue(LoadoutSystem.GetJobPrototype(job.ID), out loadout);
-                        loadout = loadout?.Clone();
-
+                        var loadout = GetRoleLoadoutForEditor(job, roleLoadoutProto);
                         if (loadout == null)
-                        {
-                            loadout = new RoleLoadout(roleLoadoutProto.ID);
-                            loadout.SetDefault(Profile, _playerManager.LocalSession, _prototypeManager);
-                        }
+                            return;
 
                         OpenLoadout(job, loadout, roleLoadoutProto);
                     };
